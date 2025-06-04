@@ -1,0 +1,101 @@
+﻿<Window x:Class="DesktopWidgetApp.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:DesktopWidgetApp"
+        mc:Ignorable="d"
+        Title="바탕화면 위젯" Height="750" Width="1000" 
+        WindowStyle="None" AllowsTransparency="True" Background="Transparent"
+        ShowInTaskbar="False"
+        MouseLeftButtonDown="Window_MouseLeftButtonDown">
+
+    <!-- 전체 창의 배경 및 테두리 설정 -->
+    <Border Background="#7F000000" CornerRadius="10" BorderBrush="LightGray" BorderThickness="1">
+        <!-- 주 컨텐츠 영역을 위한 그리드 레이아웃 -->
+        <Grid Margin="10">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/> <!-- 0: 상단 (공지, 영단어, 급식) -->
+                <RowDefinition Height="Auto"/> <!-- 1: 중간 (수행평가, 설정 버튼) -->
+                <RowDefinition Height="*"/>    <!-- 2: 하단 (시간표 - 남은 공간 모두 사용) -->
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1.2*" /> <!-- 왼쪽 열 -->
+                <ColumnDefinition Width="2*" />   <!-- 오른쪽 열 -->
+            </Grid.ColumnDefinitions>
+
+            <!-- 닫기 버튼: 오른쪽 상단에 위치하며 다른 요소들 위에 표시되도록 ZIndex 설정 -->
+            <Button x:Name="CloseButton" Content="X" Click="CloseButton_Click"
+                    HorizontalAlignment="Right" VerticalAlignment="Top" 
+                    Grid.Row="0" Grid.Column="1" Margin="0,5,5,0" 
+                    Panel.ZIndex="100" 
+                    Width="25" Height="25" FontWeight="Bold" Background="IndianRed" Foreground="White" BorderThickness="0"
+                    ToolTip="앱 종료"/>
+
+            <!-- 왼쪽 섹션 (학교 공지, 수행평가 공지, 설정 버튼) -->
+            <StackPanel Grid.Row="0" Grid.Column="0" Grid.RowSpan="2" Margin="0,0,10,0">
+                <!-- 학교 공지 섹션 -->
+                <Border Background="#33FFFFFF" CornerRadius="5" Padding="10" Margin="0,35,0,10">
+                    <StackPanel>
+                        <TextBlock Text="📢 학교 공지" FontSize="16" FontWeight="Bold" Foreground="White" Margin="0,0,0,5"/>
+                        <TextBlock x:Name="SchoolNoticeContent" Text="[학교 공지 API 연동 예정]" Foreground="White" TextWrapping="Wrap" MinHeight="60"/>
+                    </StackPanel>
+                </Border>
+                <!-- 수행평가 공지 섹션 -->
+                <Border Background="#33FFFFFF" CornerRadius="5" Padding="10" Margin="0,0,0,5">
+                     <StackPanel>
+                        <TextBlock Text="📝 수행평가 공지" FontSize="16" FontWeight="Bold" Foreground="White" Margin="0,0,0,5"/>
+                        <Grid x:Name="PerformanceAssessmentGrid" MinHeight="150"/>
+                    </StackPanel>
+                </Border>
+                <!-- 설정 버튼 추가 -->
+                <Button x:Name="SettingsButton" Content="⚙️" Click="SettingsButton_Click"
+                        HorizontalAlignment="Left" VerticalAlignment="Bottom" 
+                        Margin="10,5,0,0" 
+                        Width="25" Height="25" FontWeight="Bold" Background="#555555" Foreground="White" BorderThickness="0"
+                        ToolTip="설정"/>
+            </StackPanel>
+
+            <!-- 오른쪽 상단 섹션 (오늘의 영단어, 오늘의 급식) -->
+            <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Vertical" Margin="0,35,0,10"> 
+                 <!-- 오늘의 영단어 섹션 -->
+                <Border Background="#33FFFFFF" CornerRadius="5" Padding="10" Margin="0,0,0,5">
+                    <StackPanel>
+                        <TextBlock Text="📚 오늘의 영단어" FontSize="16" FontWeight="Bold" Foreground="White" Margin="0,0,0,5"/>
+                        <TextBlock x:Name="DailyWordContent" Text="[영단어 로딩 중...]" Foreground="White" MinHeight="40"/>
+                    </StackPanel>
+                </Border>
+                <!-- 오늘의 급식 (가로 2칸으로 변경) -->
+                <Border Background="#33FFFFFF" CornerRadius="5" Padding="10" Margin="0,5,0,0">
+                    <StackPanel>
+                        <TextBlock Text="🍚 급식 정보 (중식)" FontSize="16" FontWeight="Bold" Foreground="White" Margin="0,0,0,5"/>
+                        <!-- 가로 2칸으로 급식 정보를 표시하기 위한 Grid -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/> <!-- 오늘 급식 칸 -->
+                                <ColumnDefinition Width="*"/> <!-- 내일 급식 칸 -->
+                            </Grid.ColumnDefinitions>
+                            <!-- 오늘 급식 TextBlock -->
+                            <TextBlock x:Name="TodayMealContentText" Grid.Column="0" Text="[오늘 급식 로딩 중...]" Foreground="White" TextWrapping="Wrap" Margin="0,0,5,0" VerticalAlignment="Top"/>
+                            <!-- 내일 급식 TextBlock -->
+                            <TextBlock x:Name="TomorrowMealContentText" Grid.Column="1" Text="[내일 급식 로딩 중...]" Foreground="White" TextWrapping="Wrap" Margin="5,0,0,0" VerticalAlignment="Top"/>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+
+            <!-- 시간표 섹션 (오른쪽 하단) -->
+            <!-- 시간표 영역이 너무 커지지 않도록 MaxHeight를 설정하거나, 내부 Grid의 크기를 조절합니다.
+                 Grid.Row="2"로 변경하여 하단 전체 영역을 사용하도록 합니다. -->
+            <Border Grid.Row="1" Grid.Column="1" Grid.RowSpan="2" Background="#33FFFFFF" CornerRadius="5" Padding="10" Margin="0,10,0,0"> 
+                <DockPanel>
+                    <TextBlock x:Name="TimetableTitleText" DockPanel.Dock="Top" Text="📅 시간표" FontSize="16" FontWeight="Bold" Foreground="White" Margin="0,0,0,5"/>
+                    <!-- 시간표 내용 Grid, 크기가 너무 커지지 않도록 ScrollViewer 추가 또는 MinHeight/MinWidth 조정 필요 -->
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                        <Grid x:Name="TimetableDisplayGrid"/>
+                    </ScrollViewer>
+                </DockPanel>
+            </Border>
+        </Grid>
+    </Border>
+</Window>
