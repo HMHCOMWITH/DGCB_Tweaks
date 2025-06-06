@@ -5,31 +5,23 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:DesktopWidgetApp"
         mc:Ignorable="d"
-        Title="바탕화면 위젯" Height="750" Width="1000" 
+        Title="DGCBTweaks" Height="750" Width="1000" 
     WindowStyle="None" AllowsTransparency="True" Background="Transparent"
         ShowInTaskbar="False"
         MouseLeftButtonDown="Window_MouseLeftButtonDown">
 
-    <!-- 전체 창의 배경 및 테두리 설정 -->
     <Border Background="#7F000000" CornerRadius="10" BorderBrush="LightGray" BorderThickness="1">
-        <!-- 주 컨텐츠 영역을 위한 그리드 레이아웃 -->
         <Grid Margin="10">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
-                <!-- 0: 상단 (공지, 영단어, 급식) -->
-                <RowDefinition Height="Auto"/>
-                <!-- 1: 중간 (수행평가, 설정 버튼) -->
                 <RowDefinition Height="*"/>
-                <!-- 2: 하단 (시간표 - 남은 공간 모두 사용) -->
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="1.2*" />
-                <!-- 왼쪽 열 -->
                 <ColumnDefinition Width="2*" />
-                <!-- 오른쪽 열 -->
             </Grid.ColumnDefinitions>
 
-            <!-- 닫기 버튼: 오른쪽 상단에 위치하며 다른 요소들 위에 표시되도록 ZIndex 설정 -->
+            <!-- 닫기 버튼 -->
             <Button x:Name="CloseButton" Content="X" Click="CloseButton_Click"
                     HorizontalAlignment="Right" VerticalAlignment="Top" 
                     Grid.Row="0" Grid.Column="1" Margin="0,5,5,0" 
@@ -37,24 +29,41 @@
                     Width="25" Height="25" FontWeight="Bold" Background="IndianRed" Foreground="White" BorderThickness="0"
                     ToolTip="앱 종료"/>
 
-            <!-- 왼쪽 섹션 (학교 공지, 수행평가 공지, 설정 버튼) -->
-            <StackPanel Grid.Row="0" Grid.Column="0" Grid.RowSpan="2" Margin="0,0,10,0">
-                <!-- 학교 공지 섹션 (사용자 UI 조정 반영) -->
-                <Border Background="#33FFFFFF" CornerRadius="5" Padding="10" Margin="0,35,0,10">
+            <!-- 좌측 상단 프로그램명 -->
+            <TextBlock Text="DGCBTweaks" FontSize="20" FontWeight="Bold" Foreground="#CCCCCC"
+                       HorizontalAlignment="Left" VerticalAlignment="Top"
+                       Grid.Row="0" Grid.Column="0" Margin="5,5,0,0"/>
+
+            <!-- 좌측 하단 저작권 문구 -->
+            <TextBlock Text="ⓒ2025 HMH COMWITH Team with Google Gemini. All rights reserved." FontSize="10" Foreground="#AAAAAA"
+                       HorizontalAlignment="Left" VerticalAlignment="Bottom"
+                       Grid.Row="1" Grid.Column="0" Margin="5,0,0,5"/>
+
+            <!-- 왼쪽 섹션 (학교 공지, 수행평가, MOTD, 설정 버튼) -->
+            <StackPanel Grid.Row="0" Grid.Column="0" Grid.RowSpan="2" Margin="0,35,10,30">
+                <!-- 상하단 여백 조정 -->
+                <!-- 학교 공지 -->
+                <Border Background="#33FFFFFF" CornerRadius="5" Padding="10" Margin="0,0,0,10">
                     <StackPanel>
                         <TextBlock Text="📢 학교 공지" FontSize="16" FontWeight="Bold" Foreground="White" Margin="0,0,0,5"/>
                         <TextBlock x:Name="SchoolNoticeContent" Text="[학교 공지 API 연동 예정]" Foreground="White" TextWrapping="Wrap" MinHeight="60"/>
                     </StackPanel>
                 </Border>
-                <!-- 수행평가 공지 섹션 (사용자 UI 조정 반영) -->
+                <!-- 수행평가 공지 -->
                 <Border Background="#33FFFFFF" CornerRadius="5" Padding="10" Margin="0,0,0,5">
-                    <!--Padding 20을 10으로 되돌림 (일관성)-->
                     <StackPanel>
                         <TextBlock Text="📝 수행평가 공지" FontSize="16" FontWeight="Bold" Foreground="White" Margin="0,0,0,5"/>
                         <Grid x:Name="PerformanceAssessmentGrid" MinHeight="150"/>
                     </StackPanel>
                 </Border>
-                <!-- 설정 버튼 추가 -->
+                <!-- 오늘의 메시지 (MOTD) 섹션 추가 -->
+                <Border Background="#33FFFFFF" CornerRadius="5" Padding="10" Margin="0,5,0,5">
+                    <StackPanel>
+                        <TextBlock Text="✨ 오늘의 메시지" FontSize="16" FontWeight="Bold" Foreground="White" Margin="0,0,0,5"/>
+                        <TextBlock x:Name="MotdContentText" Text="메시지를 불러오는 중..." Foreground="White" TextWrapping="Wrap" MinHeight="40" FontStyle="Italic"/>
+                    </StackPanel>
+                </Border>
+                <!-- 설정 버튼 -->
                 <Button x:Name="SettingsButton" Content="⚙️" Click="SettingsButton_Click"
                         HorizontalAlignment="Left" VerticalAlignment="Bottom" 
                         Margin="10,5,0,0" 
@@ -62,47 +71,47 @@
                         ToolTip="설정"/>
             </StackPanel>
 
-            <!-- 오른쪽 상단 섹션 (오늘의 영단어, 오늘의 급식) -->
-            <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Vertical" Margin="0,35,0,-100"> <!--마진 -100 확인-->
-                <!-- 오늘의 영단어 섹션 -->
+            <!-- 오른쪽 섹션 (영단어, 급식, 시간표) -->
+            <StackPanel Grid.Row="0" Grid.Column="1" Grid.RowSpan="2" Margin="0,35,0,0">
+                <!-- 오늘의 영단어 -->
                 <Border Background="#33FFFFFF" CornerRadius="5" Padding="10" Margin="0,0,0,5">
                     <StackPanel>
                         <TextBlock Text="📚 오늘의 영단어" FontSize="16" FontWeight="Bold" Foreground="White" Margin="0,0,0,5"/>
                         <TextBlock x:Name="DailyWordContent" Text="[영단어 로딩 중...]" Foreground="White" MinHeight="40"/>
                     </StackPanel>
                 </Border>
-                <!-- 오늘의 급식 (가로 2칸으로 변경) -->
-                <Border Background="#33FFFFFF" CornerRadius="5" Padding="10" Margin="0,5,0,0">
+                <!-- 오늘의 급식 -->
+                <Border Background="#33FFFFFF" CornerRadius="5" Padding="10" Margin="0,5,0,5">
                     <StackPanel>
                         <TextBlock Text="🍚 급식 정보 (중식)" FontSize="16" FontWeight="Bold" Foreground="White" Margin="0,0,0,5"/>
-                        <!-- 가로 2칸으로 급식 정보를 표시하기 위한 Grid -->
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
-                                <!-- 오늘 급식 칸 -->
                                 <ColumnDefinition Width="*"/>
-                                <!-- 내일 급식 칸 -->
                             </Grid.ColumnDefinitions>
-                            <!-- 오늘 급식 TextBlock -->
-                            <TextBlock x:Name="TodayMealContentText" Grid.Column="0" Text="[오늘 급식 로딩 중...]" Foreground="White" TextWrapping="Wrap" Margin="0,0,5,0" VerticalAlignment="Top"/>
-                            <!-- 내일 급식 TextBlock -->
-                            <TextBlock x:Name="TomorrowMealContentText" Grid.Column="1" Text="[내일 급식 로딩 중...]" Foreground="White" TextWrapping="Wrap" Margin="5,0,0,0" VerticalAlignment="Top"/>
+                            <!-- 오늘 급식 -->
+                            <StackPanel Grid.Column="0" Margin="0,0,5,0">
+                                <TextBlock Text="[오늘]" FontWeight="SemiBold" Foreground="#DDDDDD" Margin="0,0,0,2"/>
+                                <TextBlock x:Name="TodayMealContentText" Text="[로딩 중...]" Foreground="White" TextWrapping="Wrap" VerticalAlignment="Top"/>
+                            </StackPanel>
+                            <!-- 내일 급식 -->
+                            <StackPanel Grid.Column="1" Margin="5,0,0,0">
+                                <TextBlock Text="[내일]" FontWeight="SemiBold" Foreground="#DDDDDD" Margin="0,0,0,2"/>
+                                <TextBlock x:Name="TomorrowMealContentText" Text="[로딩 중...]" Foreground="White" TextWrapping="Wrap" VerticalAlignment="Top"/>
+                            </StackPanel>
                         </Grid>
                     </StackPanel>
                 </Border>
+                <!-- 시간표 -->
+                <Border Background="#33FFFFFF" CornerRadius="5" Padding="10" Margin="0,5,0,0">
+                    <DockPanel>
+                        <TextBlock x:Name="TimetableTitleText" DockPanel.Dock="Top" Text="📅 시간표" FontSize="16" FontWeight="Bold" Foreground="White" Margin="0,0,0,5"/>
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                            <Grid x:Name="TimetableDisplayGrid"/>
+                        </ScrollViewer>
+                    </DockPanel>
+                </Border>
             </StackPanel>
-
-            <!-- 시간표 섹션 (오른쪽 하단) (사용자 UI 조정 반영) -->
-            <Border Grid.Row="1" Grid.Column="1" Grid.RowSpan="2" Background="#33FFFFFF" CornerRadius="5" Padding="10" Margin="0,10,0,0">
-                <!-- 상단 마진 10으로 복원 -->
-                <DockPanel>
-                    <TextBlock x:Name="TimetableTitleText" DockPanel.Dock="Top" Text="📅 시간표" FontSize="16" FontWeight="Bold" Foreground="White" Margin="0,0,0,5"/>
-                    <!-- 하단 마진 5로 복원 -->
-                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                        <Grid x:Name="TimetableDisplayGrid"/>
-                    </ScrollViewer>
-                </DockPanel>
-            </Border>
         </Grid>
     </Border>
 </Window>
