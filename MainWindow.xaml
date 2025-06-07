@@ -5,26 +5,28 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:DesktopWidgetApp"
         mc:Ignorable="d"
-        Title="DGCBTweaks" Height="750" Width="1000" 
-    WindowStyle="None" AllowsTransparency="True" Background="Transparent"
+        Title="DGCBTweaks" Height="750" Width="1000"
+        WindowStyle="None" AllowsTransparency="True" Background="Transparent"
         ShowInTaskbar="False"
         MouseLeftButtonDown="Window_MouseLeftButtonDown">
 
     <Border Background="#7F000000" CornerRadius="10" BorderBrush="LightGray" BorderThickness="1">
         <Grid Margin="10">
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
+                <!-- 이제 행을 하나만 사용하여 내부에서 배치 -->
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="1.2*" />
-                <ColumnDefinition Width="2*" />
+                <ColumnDefinition Width="Auto" />
+                <!-- 왼쪽 열: 내용에 맞게 너비 자동 조절 -->
+                <ColumnDefinition Width="*" />
+                <!-- 오른쪽 열: 남은 공간 모두 사용 -->
             </Grid.ColumnDefinitions>
 
-            <!-- 닫기 버튼 -->
+            <!-- 닫기 버튼: 오른쪽 상단 -->
             <Button x:Name="CloseButton" Content="X" Click="CloseButton_Click"
                     HorizontalAlignment="Right" VerticalAlignment="Top" 
-                    Grid.Row="0" Grid.Column="1" Margin="0,5,5,0" 
+                    Grid.Column="1" Margin="0,5,5,0" 
                     Panel.ZIndex="100" 
                     Width="25" Height="25" FontWeight="Bold" Background="IndianRed" Foreground="White" BorderThickness="0"
                     ToolTip="앱 종료"/>
@@ -32,47 +34,58 @@
             <!-- 좌측 상단 프로그램명 -->
             <TextBlock Text="DGCBTweaks" FontSize="20" FontWeight="Bold" Foreground="#CCCCCC"
                        HorizontalAlignment="Left" VerticalAlignment="Top"
-                       Grid.Row="0" Grid.Column="0" Margin="5,5,0,0"/>
+                       Grid.Column="0" Margin="5,5,0,0"/>
 
-            <!-- 좌측 하단 저작권 문구 -->
-            <TextBlock Text="ⓒ2025 HMH COMWITH Team with Google Gemini. All rights reserved." FontSize="10" Foreground="#AAAAAA"
-                       HorizontalAlignment="Left" VerticalAlignment="Bottom"
-                       Grid.Row="1" Grid.Column="0" Margin="5,0,0,5"/>
-
-            <!-- 왼쪽 섹션 (학교 공지, 수행평가, MOTD, 설정 버튼) -->
-            <StackPanel Grid.Row="0" Grid.Column="0" Grid.RowSpan="2" Margin="0,35,10,30">
-                <!-- 상하단 여백 조정 -->
-                <!-- 학교 공지 -->
-                <Border Background="#33FFFFFF" CornerRadius="5" Padding="10" Margin="0,0,0,10">
-                    <StackPanel>
-                        <TextBlock Text="📢 학교 공지" FontSize="16" FontWeight="Bold" Foreground="White" Margin="0,0,0,5"/>
-                        <TextBlock x:Name="SchoolNoticeContent" Text="[학교 공지 API 연동 예정]" Foreground="White" TextWrapping="Wrap" MinHeight="60"/>
-                    </StackPanel>
-                </Border>
-                <!-- 수행평가 공지 -->
-                <Border Background="#33FFFFFF" CornerRadius="5" Padding="10" Margin="0,0,0,5">
-                    <StackPanel>
-                        <TextBlock Text="📝 수행평가 공지" FontSize="16" FontWeight="Bold" Foreground="White" Margin="0,0,0,5"/>
-                        <Grid x:Name="PerformanceAssessmentGrid" MinHeight="150"/>
-                    </StackPanel>
-                </Border>
-                <!-- 오늘의 메시지 (MOTD) 섹션 추가 -->
-                <Border Background="#33FFFFFF" CornerRadius="5" Padding="10" Margin="0,5,0,5">
-                    <StackPanel>
-                        <TextBlock Text="✨ 오늘의 메시지" FontSize="16" FontWeight="Bold" Foreground="White" Margin="0,0,0,5"/>
-                        <TextBlock x:Name="MotdContentText" Text="메시지를 불러오는 중..." Foreground="White" TextWrapping="Wrap" MinHeight="40" FontStyle="Italic"/>
-                    </StackPanel>
-                </Border>
-                <!-- 설정 버튼 -->
+            <!-- 왼쪽 섹션 (학교 공지, 수행평가, MOTD, QR, 설정, 저작권) -->
+            <!-- DockPanel을 사용하여 저작권과 설정 버튼을 하단에 고정합니다. -->
+            <DockPanel Grid.Column="0" Margin="0,35,10,0">
+                <!-- 하단 저작권 문구 -->
+                <TextBlock Text="ⓒ2025 HMH COMWITH Team with Google Gemini. All rights reserved." FontSize="10" Foreground="#AAAAAA"
+                           DockPanel.Dock="Bottom" Margin="5,5,0,5"/>
+                <!-- 하단 설정 버튼 -->
                 <Button x:Name="SettingsButton" Content="⚙️" Click="SettingsButton_Click"
-                        HorizontalAlignment="Left" VerticalAlignment="Bottom" 
-                        Margin="10,5,0,0" 
+                        DockPanel.Dock="Bottom"
+                        HorizontalAlignment="Left"
+                        Margin="10,5,0,5" 
                         Width="25" Height="25" FontWeight="Bold" Background="#555555" Foreground="White" BorderThickness="0"
                         ToolTip="설정"/>
-            </StackPanel>
+
+                <!-- 상단 컨텐츠 영역 (나머지 공간 차지) -->
+                <StackPanel>
+                    <!-- 학교 공지 -->
+                    <Border Background="#33FFFFFF" CornerRadius="5" Padding="10" Margin="0,0,0,10">
+                        <StackPanel>
+                            <TextBlock Text="📢 학교 공지" FontSize="16" FontWeight="Bold" Foreground="White" Margin="0,0,0,5"/>
+                            <TextBlock x:Name="SchoolNoticeContent" Text="[학교 공지 API 연동 예정]" Foreground="White" TextWrapping="Wrap" MinHeight="60"/>
+                        </StackPanel>
+                    </Border>
+                    <!-- 수행평가 공지 -->
+                    <Border Background="#33FFFFFF" CornerRadius="5" Padding="10" Margin="0,0,0,5">
+                        <StackPanel>
+                            <TextBlock Text="📝 수행평가 공지" FontSize="16" FontWeight="Bold" Foreground="White" Margin="0,0,0,5"/>
+                            <Grid x:Name="PerformanceAssessmentGrid" MinHeight="150"/>
+                        </StackPanel>
+                    </Border>
+                    <!-- 오늘의 메시지 (MOTD) -->
+                    <Border Background="#33FFFFFF" CornerRadius="5" Padding="10" Margin="0,5,0,5">
+                        <StackPanel>
+                            <TextBlock Text="✨ 오늘의 메시지" FontSize="16" FontWeight="Bold" Foreground="White" Margin="0,0,0,5"/>
+                            <TextBlock x:Name="MotdContentText" Text="메시지를 불러오는 중..." Foreground="White" TextWrapping="Wrap" MinHeight="40" FontStyle="Italic"/>
+                        </StackPanel>
+                    </Border>
+                    <!-- QR 코드 섹션 -->
+                    <Border Background="#33FFFFFF" CornerRadius="5" Padding="10" Margin="0,5,0,5">
+                        <StackPanel HorizontalAlignment="Center">
+                            <!-- 이미지 경로는 프로젝트의 Assets 폴더 안을 가리킵니다. -->
+                            <Image Source="/Assets/support_QR.png" Width="120" Height="120" Stretch="Uniform"/>
+                            <TextBlock Text="이용 방법 및 문의" FontSize="14" FontWeight="SemiBold" Foreground="White" Margin="0,5,0,0" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </DockPanel>
 
             <!-- 오른쪽 섹션 (영단어, 급식, 시간표) -->
-            <StackPanel Grid.Row="0" Grid.Column="1" Grid.RowSpan="2" Margin="0,35,0,0">
+            <StackPanel Grid.Column="1" Margin="10,35,0,0">
                 <!-- 오늘의 영단어 -->
                 <Border Background="#33FFFFFF" CornerRadius="5" Padding="10" Margin="0,0,0,5">
                     <StackPanel>
@@ -89,12 +102,10 @@
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <!-- 오늘 급식 -->
                             <StackPanel Grid.Column="0" Margin="0,0,5,0">
                                 <TextBlock Text="[오늘]" FontWeight="SemiBold" Foreground="#DDDDDD" Margin="0,0,0,2"/>
                                 <TextBlock x:Name="TodayMealContentText" Text="[로딩 중...]" Foreground="White" TextWrapping="Wrap" VerticalAlignment="Top"/>
                             </StackPanel>
-                            <!-- 내일 급식 -->
                             <StackPanel Grid.Column="1" Margin="5,0,0,0">
                                 <TextBlock Text="[내일]" FontWeight="SemiBold" Foreground="#DDDDDD" Margin="0,0,0,2"/>
                                 <TextBlock x:Name="TomorrowMealContentText" Text="[로딩 중...]" Foreground="White" TextWrapping="Wrap" VerticalAlignment="Top"/>
