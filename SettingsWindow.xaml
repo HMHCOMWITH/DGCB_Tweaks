@@ -1,0 +1,62 @@
+﻿<Window x:Class="DesktopWidgetApp.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:DesktopWidgetApp"
+        mc:Ignorable="d"
+        Title="설정" Height="450" Width="500"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize" ShowInTaskbar="False">
+    <Grid Margin="15">
+        <Grid.RowDefinitions> 
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- 제목 -->
+        <TextBlock Text="설정" FontSize="24" FontWeight="Bold" Margin="0,0,0,20"/>
+
+        <!-- 학년/반 설정 -->
+        <GroupBox Header="학년 / 반 설정" Grid.Row="1" Padding="10">
+            <StackPanel>
+                <TextBlock Text="학년 입력 (1학년일 경우 '1'로, 정수 형식으로 기재)" Margin="0,0,0,2"/>
+                <TextBox x:Name="GradeTextBox" Padding="2"/>
+                <TextBlock Text="반 입력 (2반일 경우 '2'로, 정수 형식으로 기재)" Margin="0,10,0,2"/>
+                <TextBox x:Name="ClassTextBox" Padding="2"/>
+            </StackPanel>
+        </GroupBox>
+
+        <!-- 프로그램 설정 -->
+        <GroupBox Header="프로그램 설정" Grid.Row="2" Padding="10" Margin="0,10,0,0">
+            <StackPanel>
+                <!-- 배경 투명도 -->
+                <TextBlock x:Name="TransparencyLabel" Text="배경 투명도 설정 (현재: 50%)" Margin="0,0,0,2"/>
+                <Slider x:Name="TransparencySlider" Minimum="0" Maximum="100" Value="50"
+                        ValueChanged="TransparencySlider_ValueChanged" TickFrequency="10" IsSnapToTickEnabled="True"/>
+
+                <!-- 창 활성 설정 -->
+                <TextBlock Text="창 활성 설정" Margin="0,15,0,5"/>
+                <StackPanel Orientation="Horizontal">
+                    <!-- RadioButton을 그룹으로 묶어 하나만 선택되도록 함 -->
+                    <RadioButton x:Name="ActivationNormalRadio" GroupName="ActivationGroup" Content="일반" IsChecked="True"/>
+                    <RadioButton x:Name="ActivationTopmostRadio" GroupName="ActivationGroup" Content="항상 맨 위에" Margin="10,0,0,0"/>
+                    <RadioButton x:Name="ActivationNoActivateRadio" GroupName="ActivationGroup" Content="항상 맨 밑에" Margin="10,0,0,0"/>
+                </StackPanel>
+
+                <!-- 자동 실행 설정 -->
+                <TextBlock Text="구동 시 프로그램 자동 실행" Margin="0,15,0,5"/>
+                <ToggleButton x:Name="AutoRunToggleButton" Content="O" Width="50" IsChecked="False"
+                              Checked="AutoRunToggleButton_Checked" Unchecked="AutoRunToggleButton_Unchecked"/>
+            </StackPanel>
+        </GroupBox>
+
+        <!-- 하단 버튼 -->
+        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
+            <Button x:Name="CloseButton" Content="돌아가기" Width="100" Height="30" Margin="0,0,10,0" Click="CloseButton_Click"/>
+            <Button x:Name="SaveButton" Content="설정 저장" Width="100" Height="30" IsDefault="True" Click="SaveButton_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>
