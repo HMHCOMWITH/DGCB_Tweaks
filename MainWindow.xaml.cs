@@ -219,7 +219,7 @@ namespace DesktopWidgetApp
         #endregion
 
         #region Data Loading & UI Update
-        private async Task LoadDailyWordAsync() { await Dispatcher.InvokeAsync(() => { if (DailyWordContent != null) DailyWordContent.Text = "[오늘의 영단어 API 연동 예정]"; }); }
+        private async Task LoadDailyWordAsync() { await Dispatcher.InvokeAsync(() => { if (DailyWordContent != null) DailyWordContent.Text = "[주의 - 아직 개발중인 빌드입니다]"; }); }
         private async Task LoadPerformanceAssessmentDataAsync() { /* 자리 표시자 */ }
 
         // 디데이 로드 메서드 (요구사항 반영하여 수정)
