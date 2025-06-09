@@ -43,7 +43,7 @@ namespace DesktopWidgetApp
     public class NotionMotdProperties { [JsonProperty("Message")] public NotionTitleProperty Message { get; set; } }
 
     public class NotionDdayPage { [JsonProperty("properties")] public NotionDdayProperties Properties { get; set; } }
-    public class NotionDdayProperties { [JsonProperty("이벤트 명")] public NotionTitleProperty EventName { get; set; } [JsonProperty("날짜")] public NotionDateProperty EventDate { get; set; } }
+    public class NotionDdayProperties { [JsonProperty("Eventname_NT")] public NotionTitleProperty EventName { get; set; } [JsonProperty("날짜")] public NotionDateProperty EventDate { get; set; } }
 
     public class NotionTitleProperty { [JsonProperty("title")] public List<NotionRichText> Title { get; set; } }
     public class NotionDateProperty { [JsonProperty("date")] public NotionDateObject Date { get; set; } }
