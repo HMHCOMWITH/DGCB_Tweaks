@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:DesktopWidgetApp"
         mc:Ignorable="d"
-        Title="설정" Height="450" Width="500"
+        Title="설정" Height="600" Width="500"
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize" ShowInTaskbar="False">
     <Grid Margin="15">
@@ -30,7 +30,9 @@
         </GroupBox>
 
         <!-- 프로그램 설정 -->
-        <GroupBox Header="프로그램 설정" Grid.Row="2" Padding="10" Margin="0,10,0,0">
+        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" Margin="0,10,0,0">
+            <StackPanel>
+                <GroupBox Header="프로그램 설정" Grid.Row="2" Padding="10" Margin="0,10,0,0">
             <StackPanel>
                 <!-- 배경 투명도 -->
                 <TextBlock x:Name="TransparencyLabel" Text="배경 투명도 설정 (현재: 50%)" Margin="0,0,0,2"/>
@@ -52,6 +54,17 @@
                               Checked="AutoRunToggleButton_Checked" Unchecked="AutoRunToggleButton_Unchecked"/>
             </StackPanel>
         </GroupBox>
+                        <!-- 수행평가 공지 설정 (새로 추가) -->
+                <GroupBox Header="수행평가 공지 설정 (사용자 Notion 연동)" Padding="10" Margin="0,10,0,0">
+                    <StackPanel>
+                        <TextBlock Text="Notion API 통합 키 (Internal)" Margin="0,0,0,2" ToolTip="Notion의 '내 통합' 페이지에서 확인 가능합니다."/>
+                        <TextBox x:Name="UserNotionApiKeyTextBox" Padding="2"/>
+                        <TextBlock Text="데이터베이스 ID" Margin="0,10,0,2" ToolTip="공유된 Notion 페이지 URL에서 32자리의 ID를 확인하세요."/>
+                        <TextBox x:Name="UserNotionDbIdTextBox" Padding="2"/>
+                    </StackPanel>
+                </GroupBox>
+            </StackPanel>
+        </ScrollViewer>
 
         <!-- 하단 버튼 -->
         <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">

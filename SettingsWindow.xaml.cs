@@ -25,7 +25,11 @@ namespace DesktopWidgetApp
             GradeTextBox.Text = _currentSettings.Grade;
             ClassTextBox.Text = _currentSettings.ClassNum;
             TransparencySlider.Value = _currentSettings.Opacity * 100;
+            // 노션뭐시기 추가
+            UserNotionApiKeyTextBox.Text = _currentSettings.UserNotionApiKey;
+            UserNotionDbIdTextBox.Text = _currentSettings.UserNotionDbId;
             UpdateTransparencyLabel();
+
 
             switch (_currentSettings.ActivationMode)
             {
@@ -35,6 +39,8 @@ namespace DesktopWidgetApp
             }
             AutoRunToggleButton.IsChecked = _currentSettings.AutoRunEnabled;
             UpdateAutoRunButtonContent();
+
+
         }
 
         private void SaveButton_Click(object sender, RoutedEventArgs e)
@@ -49,6 +55,15 @@ namespace DesktopWidgetApp
 
             _currentSettings.AutoRunEnabled = AutoRunToggleButton.IsChecked ?? false;
             _onSave?.Invoke(_currentSettings);
+
+
+            // 수행평가 Notion 정보 저장
+            _currentSettings.UserNotionApiKey = UserNotionApiKeyTextBox.Text;
+            _currentSettings.UserNotionDbId = UserNotionDbIdTextBox.Text;
+            //            public string UserNotionApiKey { get; set; } = "";
+           // public string UserNotionDbId { get; set; } = "";
+
+        _onSave?.Invoke(_currentSettings);
             this.Close();
         }
 

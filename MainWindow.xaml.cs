@@ -50,6 +50,10 @@ namespace DesktopWidgetApp
     public class NotionDateObject { [JsonProperty("start")] public string Start { get; set; } }
     public class NotionRichText { [JsonProperty("text")] public NotionTextContent Text { get; set; } }
     public class NotionTextContent { [JsonProperty("content")] public string Content { get; set; } }
+
+    public class NotionAssessmentPage { [JsonProperty("properties")] public NotionAssessmentProperties Properties { get; set; } }
+    public class NotionAssessmentProperties { [JsonProperty("수행평가명")] public NotionTitleProperty AssessmentName { get; set; } [JsonProperty("날짜")] public NotionDateProperty DueDate { get; set; } }
+
     #endregion
 
     public partial class MainWindow : Window
@@ -142,7 +146,16 @@ namespace DesktopWidgetApp
         #endregion
 
         #region Settings and App Configuration
-        public class AppSettings { public string Grade { get; set; } = "1"; public string ClassNum { get; set; } = "1"; public double Opacity { get; set; } = 0.5; public WindowActivationMode ActivationMode { get; set; } = WindowActivationMode.Normal; public bool AutoRunEnabled { get; set; } = false; }
+        public class AppSettings {
+            public string Grade { get; set; } = "1";
+            public string ClassNum { get; set; } = "1";
+            public double Opacity { get; set; } = 0.5;
+            public WindowActivationMode ActivationMode { get; set; } = WindowActivationMode.Normal;
+            public bool AutoRunEnabled { get; set; } = false;
+
+            public string UserNotionApiKey { get; set; } = "";
+            public string UserNotionDbId { get; set; } = "";
+        }
         public enum WindowActivationMode { Normal, Topmost, NoActivate }
 
         private void SetupWindowProperties()
@@ -168,7 +181,18 @@ namespace DesktopWidgetApp
 
         private void SaveSettings(AppSettings settings) { try { XmlSerializer serializer = new XmlSerializer(typeof(AppSettings)); Directory.CreateDirectory(Path.GetDirectoryName(settingsFilePath)!); using (FileStream fs = new FileStream(settingsFilePath, FileMode.Create)) { serializer.Serialize(fs, settings); } UpdateTimetableTitle(settings.Grade, settings.ClassNum); Debug.WriteLine("설정 저장 완료"); } catch (Exception ex) { Debug.WriteLine($"설정 저장 오류: {ex.Message}"); } }
 
-        private void OnSettingsSaved(AppSettings newSettings) { SaveSettings(newSettings); ApplyWindowActivationStyle(newSettings.ActivationMode); SetAutoRun(newSettings.AutoRunEnabled); if (MainBorder != null) { byte alpha = (byte)Math.Round(newSettings.Opacity * 255); MainBorder.Background = new SolidColorBrush(Color.FromArgb(alpha, 0, 0, 0)); } }
+        private void OnSettingsSaved(AppSettings newSettings) {
+            SaveSettings(newSettings);
+            ApplyWindowActivationStyle(newSettings.ActivationMode);
+            SetAutoRun(newSettings.AutoRunEnabled);
+            if (MainBorder != null) 
+            { 
+                byte alpha = (byte)Math.Round(newSettings.Opacity * 255);
+                MainBorder.Background = new SolidColorBrush(Color.FromArgb(alpha, 0, 0, 0)); 
+            }
+            // 설정 저장 후 수행평가 정보도 다시 로드
+            _ = LoadPerformanceAssessmentDataAsync();
+        }
 
         private void UpdateTimetableTitle(string grade, string classNum) { DateTime today = DateTime.Today; string dayOfWeekKorean = today.ToString("dddd", new CultureInfo("ko-KR")); string dateString = $"{today.Month}월 {today.Day}일 {dayOfWeekKorean}"; if (TimetableTitleText != null) TimetableTitleText.Text = $"📅 시간표 - {grade}학년 {classNum}반 | {dateString}"; }
 
@@ -220,7 +244,107 @@ namespace DesktopWidgetApp
 
         #region Data Loading & UI Update
         private async Task LoadDailyWordAsync() { await Dispatcher.InvokeAsync(() => { if (DailyWordContent != null) DailyWordContent.Text = "[주의 - 아직 개발중인 빌드입니다]"; }); }
-        private async Task LoadPerformanceAssessmentDataAsync() { /* 자리 표시자 */ }
+        private async Task LoadPerformanceAssessmentDataAsync()
+        {
+            Debug.WriteLine("LoadPerformanceAssessmentDataAsync 시작");
+            await Dispatcher.InvokeAsync(() => ClearPerformanceGrid("수행평가 로딩 중..."));
+
+            AppSettings settings = TryLoadAppSettings();
+            string userApiKey = settings.UserNotionApiKey;
+            string userDbId = settings.UserNotionDbId;
+
+            if (string.IsNullOrWhiteSpace(userApiKey) || string.IsNullOrWhiteSpace(userDbId))
+            {
+                await Dispatcher.InvokeAsync(() => ClearPerformanceGrid("Notion API 정보 미설정"));
+                return;
+            }
+
+            List<(string date, string name)> assessments = new List<(string, string)>();
+            using (HttpClient client = new HttpClient())
+            {
+                try
+                {
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", userApiKey);
+                    client.DefaultRequestHeaders.Add("Notion-Version", "2022-06-28");
+
+                    HttpResponseMessage response = await client.PostAsync($"https://api.notion.com/v1/databases/{userDbId}/query", new StringContent("{}", Encoding.UTF8, "application/json"));
+                    string jsonResponse = await response.Content.ReadAsStringAsync();
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var apiResponse = JsonConvert.DeserializeObject<NotionApiResponse<NotionAssessmentPage>>(jsonResponse);
+                        if (apiResponse?.Results != null && apiResponse.Results.Any())
+                        {
+                            assessments = apiResponse.Results
+                                .Select(p => {
+                                    string date = p.Properties?.DueDate?.Date?.Start;
+                                    string name = p.Properties?.AssessmentName?.Title?.FirstOrDefault()?.Text?.Content;
+                                    return (date, name);
+                                })
+                                .Where(item => !string.IsNullOrWhiteSpace(item.date) && !string.IsNullOrWhiteSpace(item.name))
+                                .OrderBy(item => DateTime.TryParse(item.date, out var d) ? d : DateTime.MaxValue)
+                                .ToList();
+                        }
+                    }
+                    else
+                    {
+                        await Dispatcher.InvokeAsync(() => ClearPerformanceGrid("Notion API 정보가 올바르지 않습니다. 데이터베이스 아이디와 API 키, API 키의 접근 권한을 확인해주세요."));
+                        return;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"수행평가 Notion API 예외: {ex.Message}");
+                    await Dispatcher.InvokeAsync(() => ClearPerformanceGrid("수행평가 로드 실패"));
+                    return;
+                }
+            }
+
+            // UI 업데이트
+            await Dispatcher.InvokeAsync(() => PopulatePerformanceGrid(assessments));
+        }
+
+        private void PopulatePerformanceGrid(List<(string date, string name)> assessments)
+        {
+            ClearPerformanceGrid(""); // 기존 내용 초기화
+            if (!assessments.Any())
+            {
+                SetPerformanceCell(1, 0, "예정된 수행평가가 없습니다.");
+                Grid.SetColumnSpan(PerformanceAssessmentGrid.Children.OfType<Border>().Last(b => Grid.GetRow(b) == 1 && Grid.GetColumn(b) == 0), 2);
+                return;
+            }
+
+            for (int i = 0; i < Math.Min(assessments.Count, 7); i++) // 최대 7개까지 표시
+            {
+                // 날짜 포맷 변경 시도
+                string displayDate = assessments[i].date;
+                if (DateTime.TryParse(assessments[i].date, out DateTime parsedDate))
+                {
+                    displayDate = parsedDate.ToString("MM/dd");
+                }
+                SetPerformanceCell(i + 1, 0, displayDate);
+                SetPerformanceCell(i + 1, 1, assessments[i].name);
+            }
+        }
+
+        private void ClearPerformanceGrid(string message)
+        {
+            for (int r = 1; r <= 7; r++)
+            {
+                for (int c = 0; c < 2; c++)
+                {
+                    // 첫 번째 셀에만 메시지 표시, 나머지는 공백
+                    string text = (r == 1 && c == 0 && !string.IsNullOrWhiteSpace(message)) ? message : "";
+                    SetPerformanceCell(r, c, text);
+                    // 메시지가 있을 경우 ColumnSpan 설정
+                    var border = PerformanceAssessmentGrid.Children.OfType<Border>().FirstOrDefault(b => Grid.GetRow(b) == r && Grid.GetColumn(b) == c);
+                    if (border != null)
+                    {
+                        Grid.SetColumnSpan(border, (r == 1 && c == 0 && !string.IsNullOrWhiteSpace(message)) ? 2 : 1);
+                    }
+                }
+            }
+        }
 
         // 디데이 로드 메서드 (요구사항 반영하여 수정)
         // 디데이 로드 메서드 (요구사항 반영하여 수정 및 디버깅 강화)
@@ -445,7 +569,7 @@ namespace DesktopWidgetApp
         }
 
         private void ClearTimetableGridContent(string message) { for (int r = 1; r <= 7; r++) { for (int c = 1; c <= 5; c++) { SetTimetableCell(r, c, (r == 1 && c == 1) ? message : ""); } } }
-        private void LoadPerformanceAssessmentData() { /* 자리 표시자 */ }
+        // private void LoadPerformanceAssessmentData() { /* 자리 표시자 */ } << 폐기인듯? 거의
         private void CreateTimetableGrid() { TimetableDisplayGrid.Children.Clear(); TimetableDisplayGrid.RowDefinitions.Clear(); TimetableDisplayGrid.ColumnDefinitions.Clear(); string[] days = { "", "월", "화", "수", "목", "금" }; int periods = 7; for (int i = 0; i <= periods; i++) { TimetableDisplayGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto, MinHeight = 35 }); } for (int i = 0; i < days.Length; i++) { TimetableDisplayGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star), MinWidth = (i == 0 ? 45 : 90) }); } for (int j = 0; j < days.Length; j++) { TextBlock header = new TextBlock { Text = days[j], FontWeight = FontWeights.Bold, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(2), Foreground = Brushes.White, FontSize = 15 }; Grid.SetRow(header, 0); Grid.SetColumn(header, j); TimetableDisplayGrid.Children.Add(header); } for (int i = 1; i <= periods; i++) { TextBlock periodHeader = new TextBlock { Text = $"{i}교시", FontWeight = FontWeights.Bold, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(2), Foreground = Brushes.White, FontSize = 15 }; Grid.SetRow(periodHeader, i); Grid.SetColumn(periodHeader, 0); TimetableDisplayGrid.Children.Add(periodHeader); for (int j = 1; j < days.Length; j++) { Border cellBorder = new Border { BorderBrush = Brushes.LightGray, BorderThickness = new Thickness(0.5) }; TextBlock cell = new TextBlock { Text = "", HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(4), Foreground = Brushes.White, TextWrapping = TextWrapping.Wrap, FontSize = 14 }; cellBorder.Child = cell; Grid.SetRow(cellBorder, i); Grid.SetColumn(cellBorder, j); TimetableDisplayGrid.Children.Add(cellBorder); } } }
         private void SetTimetableCell(int row, int col, string text) { foreach (UIElement element in TimetableDisplayGrid.Children) { if (Grid.GetRow(element) == row && Grid.GetColumn(element) == col && element is Border border) { if (border.Child is TextBlock textBlock) { textBlock.Text = text; break; } } } }
         private void CreatePerformanceAssessmentGrid() { PerformanceAssessmentGrid.Children.Clear(); PerformanceAssessmentGrid.RowDefinitions.Clear(); PerformanceAssessmentGrid.ColumnDefinitions.Clear(); int dataRows = 7; int cols = 2; string[] headers = { "날짜", "수행평가 공지" }; for (int i = 0; i <= dataRows; i++) { PerformanceAssessmentGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto }); } for (int j = 0; j < cols; j++) { PerformanceAssessmentGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) }); } for (int j = 0; j < headers.Length; j++) { TextBlock header = new TextBlock { Text = headers[j], FontWeight = FontWeights.Bold, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(2), Foreground = Brushes.White }; Grid.SetRow(header, 0); Grid.SetColumn(header, j); PerformanceAssessmentGrid.Children.Add(header); } for (int i = 1; i <= dataRows; i++) { for (int j = 0; j < cols; j++) { Border cellBorder = new Border { BorderBrush = Brushes.LightGray, BorderThickness = new Thickness(0.5) }; TextBlock cell = new TextBlock { Text = "", HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(2), Foreground = Brushes.White, TextWrapping = TextWrapping.Wrap }; cellBorder.Child = cell; Grid.SetRow(cellBorder, i); Grid.SetColumn(cellBorder, j); PerformanceAssessmentGrid.Children.Add(cellBorder); } } }
