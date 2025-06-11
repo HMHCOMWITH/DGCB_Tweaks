@@ -228,19 +228,45 @@ namespace DesktopWidgetApp
         #endregion
 
         #region Statistics & Autorun
+
         public class Statistics { public int LaunchCount { get; set; } = 0; public DateTime FirstLaunchDateTime { get; set; } = DateTime.Now; }
         private void UpdateAndSaveStatistics() { Statistics stats; if (File.Exists(statisticsFilePath)) { try { XmlSerializer serializer = new XmlSerializer(typeof(Statistics)); using (FileStream fs = new FileStream(statisticsFilePath, FileMode.Open)) { stats = (Statistics)serializer.Deserialize(fs); } stats.LaunchCount++; } catch (Exception ex) { Debug.WriteLine($"통계 파일 로드 오류: {ex.Message}."); stats = new Statistics { LaunchCount = 1 }; } } else { Debug.WriteLine("통계 파일 없음. 최초 실행."); stats = new Statistics { LaunchCount = 1, FirstLaunchDateTime = DateTime.Now }; } try { XmlSerializer serializer = new XmlSerializer(typeof(Statistics)); Directory.CreateDirectory(Path.GetDirectoryName(statisticsFilePath)!); using (FileStream fs = new FileStream(statisticsFilePath, FileMode.Create)) { serializer.Serialize(fs, stats); } Debug.WriteLine($"통계 저장 완료: 실행 횟수 = {stats.LaunchCount}"); } catch (Exception ex) { Debug.WriteLine($"통계 파일 저장 오류: {ex.Message}"); } }
-        #endregion
-
-        #region Autorun
+        // 자동 실행 등록/해제 메서드 (오류 수정)
         private void SetAutoRun(bool isEnabled)
         {
             const string AppName = "DGCBTweaks";
-            string AppPath = System.Reflection.Assembly.GetExecutingAssembly().Location;
-            try { RegistryKey rk = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true); if (isEnabled) { rk.SetValue(AppName, AppPath); Debug.WriteLine($"자동 실행 등록됨: {AppPath}"); } else { if (rk.GetValue(AppName) != null) { rk.DeleteValue(AppName, false); Debug.WriteLine("자동 실행 해제됨."); } } }
+            // 중요: .dll이 아닌 .exe 파일의 경로를 가져오도록 수정
+            string AppPath = Environment.ProcessPath;
+
+            // AppPath가 null이거나 비어있으면 실행하지 않음 (안전장치)
+            if (string.IsNullOrEmpty(AppPath))
+            {
+                Debug.WriteLine("자동 실행 경로를 찾을 수 없습니다.");
+                return;
+            }
+
+            try
+            {
+                RegistryKey rk = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
+                if (isEnabled)
+                {
+                    // 레지스트리에 등록 시 큰따옴표로 경로를 감싸서 공백이 포함된 경로도 안전하게 처리
+                    rk.SetValue(AppName, $"\"{AppPath}\"");
+                    Debug.WriteLine($"자동 실행 등록됨: \"{AppPath}\"");
+                }
+                else
+                {
+                    if (rk.GetValue(AppName) != null)
+                    {
+                        rk.DeleteValue(AppName, false);
+                        Debug.WriteLine("자동 실행 해제됨.");
+                    }
+                }
+            }
             catch (Exception ex) { Debug.WriteLine($"자동 실행 설정 오류: {ex.Message}"); }
         }
         #endregion
+
 
         #region Data Loading & UI Update
         private async Task LoadDailyWordAsync() { await Dispatcher.InvokeAsync(() => { if (DailyWordContent != null) DailyWordContent.Text = "[주의 - 아직 개발중인 빌드입니다]"; }); }
@@ -458,11 +484,42 @@ namespace DesktopWidgetApp
             Debug.WriteLine("LoadSchoolMealsAsync 메서드 시작됨");
             try
             {
-                await Dispatcher.InvokeAsync(() => { if (TodayMealContentText != null) TodayMealContentText.Text = "오늘 급식 로딩 중..."; if (TomorrowMealContentText != null) TomorrowMealContentText.Text = "내일 급식 로딩 중..."; });
-                DateTime today = DateTime.Today; DateTime tomorrow = today.AddDays(1);
+                await Dispatcher.InvokeAsync(() => 
+                {
+                    if (TodayMealContentText != null) 
+                        TodayMealContentText.Text = "오늘 급식 로딩 중...";
+                    if (TomorrowMealContentText != null)
+                        TomorrowMealContentText.Text = "내일 급식 로딩 중...";
+                    Debug.WriteLine("123");
+                    MealInfoTitleText.Text = "🍚 급식 정보 (중식)";
+
+                }
+
+                ); // <<<얘뭐임?
+
+                DateTime today = DateTime.Today;
+                DateTime tomorrow = today.AddDays(1);
                 string todayMealDisplay = await GetMealInfoForDateAsync(today, "오늘");
                 string tomorrowMealDisplay = await GetMealInfoForDateAsync(tomorrow, "내일");
-                await Dispatcher.InvokeAsync(() => { if (TodayMealContentText != null) TodayMealContentText.Text = todayMealDisplay; if (TomorrowMealContentText != null) TomorrowMealContentText.Text = tomorrowMealDisplay; });
+                await Dispatcher.InvokeAsync(() => 
+                {
+                    if (TodayMealContentText != null)
+                        TodayMealContentText.Text = todayMealDisplay;
+                    if (TomorrowMealContentText != null)
+                        TomorrowMealContentText.Text = tomorrowMealDisplay; 
+                
+                });
+                bool todayHasMeal = !todayMealDisplay.Contains("정보 없음");
+                if (todayHasMeal)
+                {
+                    // 설정에서 현재 학년/반 정보를 가져와 급식 시간 계산
+                    AppSettings settings = TryLoadAppSettings();
+                    if (int.TryParse(settings.Grade, out int grade) && int.TryParse(settings.ClassNum, out int classNum))
+                    {
+                        string lunchTime = CalculateLunchTime(grade, classNum, today.DayOfWeek);
+                        MealInfoTitleText.Text = $"🍚 급식 정보 (중식) | {lunchTime} 취식";
+                    }
+                }
                 Debug.WriteLine($"LoadSchoolMealsAsync 완료");
             }
             catch (Exception ex) { Debug.WriteLine($"LoadSchoolMealsAsync에서 예외 발생: {ex.Message}"); await Dispatcher.InvokeAsync(() => { if (TodayMealContentText != null) TodayMealContentText.Text = "급식 로드 실패"; if (TomorrowMealContentText != null) TomorrowMealContentText.Text = "급식 로드 실패"; }); }
@@ -479,6 +536,69 @@ namespace DesktopWidgetApp
                 catch (Exception ex) { Debug.WriteLine($"[{dayNameForLog}] 급식 API 예외: {ex.Message}"); return $"[{dayNameForLog}] 급식 정보 없음 (오류 발생)"; }
             }
         }
+        #region Lunch Time Calculation Logic
+        // 급식 시간을 계산하는 새로운 메서드
+        private string CalculateLunchTime(int grade, int classNum, DayOfWeek dayOfWeek)
+        {
+            // 주말이면 계산하지 않음
+            if (dayOfWeek == DayOfWeek.Saturday || dayOfWeek == DayOfWeek.Sunday)
+            {
+                return "주말";
+            }
+
+            // 1. 학년별 배식 시작 시간 설정
+            DateTime baseTime;
+            switch (grade)
+            {
+                case 3:
+                    baseTime = DateTime.Today.AddHours(12).AddMinutes(40);
+                    break;
+                case 2:
+                    baseTime = DateTime.Today.AddHours(13).AddMinutes(0);
+                    break;
+                case 1:
+                    baseTime = DateTime.Today.AddHours(13).AddMinutes(20);
+                    break;
+                default:
+                    return "알 수 없음"; // 학년 정보가 1,2,3이 아닐 경우
+            }
+
+            // 2. 반 번호로 조(group) 찾기
+            int group;
+            if (classNum == 1 || classNum == 6) group = 1;
+            else if (classNum == 2 || classNum == 7) group = 2;
+            else if (classNum == 3 || classNum == 8) group = 3;
+            else if (classNum == 4 || classNum == 9) group = 4;
+            else if (classNum == 5 || classNum == 10) group = 5;
+            else return "알 수 없음"; // 반 정보가 1~10이 아닐 경우
+
+            // 3. 요일별 조 순서 계산
+            // DayOfWeek: Sunday = 0, Monday = 1, ..., Friday = 5
+            int dayOffset = (int)dayOfWeek - 1; // 월요일(0) ~ 금요일(4)
+            if (dayOffset < 0 || dayOffset > 4) return "평일 아님"; // 월~금 이외의 날
+
+            // 요일별 순서 리스트 생성
+            List<int> dailyOrder = new List<int> { 1, 2, 3, 4, 5 };
+            for (int i = 0; i < dayOffset; i++)
+            {
+                int first = dailyOrder[0];
+                dailyOrder.RemoveAt(0);
+                dailyOrder.Add(first);
+            }
+            // 예: 화요일(dayOffset=1) -> [2, 3, 4, 5, 1]
+
+            // 4. 해당 조의 순번 찾기
+            int groupOrderIndex = dailyOrder.IndexOf(group); // 0부터 시작하는 순번 (0이면 첫번째, 1이면 두번째)
+
+            if (groupOrderIndex == -1) return "알 수 없음"; // 조를 찾지 못할 경우
+
+            // 5. 최종 배식 시간 계산 (순번 * 2분)
+            DateTime finalTime = baseTime.AddMinutes(groupOrderIndex * 2);
+
+            // "HH시 mm분" 형식으로 변환하여 반환
+            return finalTime.ToString("HH시 mm분");
+        }
+        #endregion
 
         private async Task LoadTimetableDataAsync()
         {
