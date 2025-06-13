@@ -108,7 +108,7 @@ namespace DesktopWidgetApp
         private const string NotionApiKey = "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"; // Notion API 키 (고정형 - 오늘의 메시지, 오늘의 영단어, 디데이 등의 고정형 기능의 API키를 담당)
         private const string MotdDatabaseId = "20af2d42beb9804e9e52c5f6b72a67a3"; // MOTD 데이터베이스 ID (오늘의 메시지 데이터베이스를 찾는 담당)
         private const string DdayDatabaseId = "20df2d42beb980c09a58fc147a4eb6ba"; // D-Day 데이터베이스 ID (D-Day 기능을 담당)
-        private const string WordDatabaseId = "211f2d42beb94ea180598e07d8e316bf";
+        private const string WordDatabaseId = "211f2d42beb980598e07d8e316bf7a44";
 
         private static readonly Random random = new Random(); //랜덤 숫자 생성기 (오늘의 메시지 기능에서 랜덤 번호를 선택하는 데 사용됨)
         #endregion
@@ -381,17 +381,19 @@ private async Task LoadDailyWordAsync()
                     HttpResponseMessage response = await client.PostAsync($"https://api.notion.com/v1/databases/{WordDatabaseId}/query", new StringContent("{}", Encoding.UTF8, "application/json"));
                     string jsonResponse = await response.Content.ReadAsStringAsync();
 
-                    if (response.IsSuccessStatusCode)
+                    if (response.IsSuccessStatusCode) // 응답이 성공적이면
                     {
-                        var apiResponse = JsonConvert.DeserializeObject<NotionApiResponse<NotionWordPage>>(jsonResponse);
-                        if (apiResponse?.Results != null && apiResponse.Results.Any())
+                        var apiResponse = JsonConvert.DeserializeObject<NotionApiResponse<NotionWordPage>>(jsonResponse); // JSON 응답을 NotionWordPage 타입으로 역직렬화
+                        if (apiResponse?.Results != null && apiResponse.Results.Any()) // 결과가 null이 아니고, 결과가 하나 이상 있는 경우
                         {
-                            allWords = apiResponse.Results
-                                .Select(r => r.Properties?.Word?.Title?.FirstOrDefault()?.Text?.Content)
-                                .Where(w => !string.IsNullOrWhiteSpace(w))
-                                .ToList();
+                            allWords = apiResponse.Results // 영단어 페이지들을 순회하며 단어를 추출
+                                .Select(r => r.Properties?.Word?.Title?.FirstOrDefault()?.Text?.Content) // 각 페이지에서 영단어를 추출하는 람다식
+                                .Where(w => !string.IsNullOrWhiteSpace(w)) // 단어가 비어있지 않은 항목만 필터링
+                                .ToList(); // 최종적으로 리스트로 변환
+
                         }
                     }
+                    Debug.WriteLine($"Notion 영단어 응답 (상태: {response.StatusCode}): {jsonResponse.Substring(0, Math.Min(jsonResponse.Length, 2000))}...");
                 }
                 catch (Exception ex)
                 {
@@ -402,30 +404,32 @@ private async Task LoadDailyWordAsync()
             }
 
             // 단어 섞기 및 6개 선택
-            if (allWords.Any())
+            if (allWords.Any()) // 단어 리스트가 비어있지 않은 경우
             {
                 // Fisher-Yates 알고리즘으로 리스트 섞기
-                for (int i = allWords.Count - 1; i > 0; i--)
+                for (int i = allWords.Count - 1; i > 0; i--) // 
                 {
-                    int j = random.Next(i + 1);
-                    (allWords[i], allWords[j]) = (allWords[j], allWords[i]);
+                    int j = random.Next(i + 1); // 0부터 i까지의 랜덤 인덱스 생성
+                    (allWords[i], allWords[j]) = (allWords[j], allWords[i]); // i번째와 j번째 단어를 교환하여 리스트를 섞음
                 }
-                var selectedWords = allWords.Take(6).ToList();
+                var selectedWords = allWords.Take(6).ToList(); // 섞인 리스트에서 처음 6개 단어를 선택
 
                 // UI 업데이트
-                await Dispatcher.InvokeAsync(() => {
-                    for (int i = 0; i < wordTextBlocks.Count; i++)
+                await Dispatcher.InvokeAsync(() => { // 아니씨발이게뭔데
+                    for (int i = 0; i < wordTextBlocks.Count; i++) // wordTextBlocks의 각 TextBlock에 대해
                     {
-                        if (wordTextBlocks[i] != null)
+                        if (wordTextBlocks[i] != null) // null 체크
                         {
-                            wordTextBlocks[i].Text = i < selectedWords.Count ? selectedWords[i] : "";
-                        }
-                    }
+                            wordTextBlocks[i].Text = i < selectedWords.Count ? selectedWords[i] : ""; // 선택된 단어가 있으면 텍스트를 설정, 없으면 빈 문자열로 설정
+                            Debug.WriteLine("에러인가? 단어가 채워진 것인가?");
+                        } 
+                    } 
                 });
             }
-            else
+            else // 단어 리스트가 비어있는 경우
             {
-                await Dispatcher.InvokeAsync(() => { foreach (var tb in wordTextBlocks) { if (tb != null) tb.Text = "[단어 없음]"; } });
+                await Dispatcher.InvokeAsync(() => { foreach (var tb in wordTextBlocks) { if (tb != null) tb.Text = "[단어 없음]"; } }); // 단어가 없는 경우 UI에 메시지 표시
+                Debug.WriteLine("오류발쌩!!!!");
             }
             Debug.WriteLine("LoadDailyWordAsync 완료");
         }
