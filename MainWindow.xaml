@@ -9,7 +9,16 @@
          WindowStyle="None" AllowsTransparency="True" Background="Transparent"  
          ShowInTaskbar="False"  
          MouseLeftButtonDown="Window_MouseLeftButtonDown">
-
+    <Window.Resources>
+        <Style x:Key="WordTextBlockStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+        </Style>
+    </Window.Resources>
     <Border x:Name="MainBorder" Background="#7F000000" CornerRadius="10" BorderBrush="LightGray" BorderThickness="1">
         <Grid Margin="10">
             <Grid.ColumnDefinitions>
@@ -74,11 +83,31 @@
             </DockPanel>
 
             <!-- 오른쪽 섹션 (영단어, 급식, 시간표) -->
-            <StackPanel Grid.Column="1" Margin="10,50,0,0">
+                        <StackPanel Grid.Column="1" Margin="10,35,0,0">
+                <!-- 오늘의 영단어 (UI 수정) -->
                 <Border Background="#33FFFFFF" CornerRadius="5" Padding="10" Margin="0,0,0,5">
                     <StackPanel>
                         <TextBlock Text="📚 오늘의 영단어" FontSize="16" FontWeight="Bold" Foreground="White" Margin="0,0,0,5"/>
-                        <TextBlock x:Name="DailyWordContent" Text="[영단어 로딩 중...]" Foreground="White" MinHeight="40"/>
+                        <!-- 2행 3열 그리드로 변경 -->
+                        <Grid x:Name="DailyWordGrid" MinHeight="60">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+
+                            <!-- 6개의 단어를 표시할 TextBlock -->
+                            <TextBlock x:Name="Word1" Grid.Row="0" Grid.Column="0" Text="..." Style="{StaticResource WordTextBlockStyle}"/>
+                            <TextBlock x:Name="Word2" Grid.Row="0" Grid.Column="1" Text="..." Style="{StaticResource WordTextBlockStyle}"/>
+                            <TextBlock x:Name="Word3" Grid.Row="0" Grid.Column="2" Text="..." Style="{StaticResource WordTextBlockStyle}"/>
+                            <TextBlock x:Name="Word4" Grid.Row="1" Grid.Column="0" Text="..." Style="{StaticResource WordTextBlockStyle}"/>
+                            <TextBlock x:Name="Word5" Grid.Row="1" Grid.Column="1" Text="..." Style="{StaticResource WordTextBlockStyle}"/>
+                            <TextBlock x:Name="Word6" Grid.Row="1" Grid.Column="2" Text="..." Style="{StaticResource WordTextBlockStyle}"/>
+                        </Grid>
                     </StackPanel>
                 </Border>
                 <Border Background="#33FFFFFF" CornerRadius="5" Padding="10" Margin="0,5,0,5">
@@ -111,4 +140,6 @@
             </StackPanel>
         </Grid>
     </Border>
+
+
 </Window>

@@ -81,10 +81,12 @@ namespace DesktopWidgetApp
     public class NotionDateObject { [JsonProperty("start")] public string Start { get; set; } }
     public class NotionRichText { [JsonProperty("text")] public NotionTextContent Text { get; set; } }
     public class NotionTextContent { [JsonProperty("content")] public string Content { get; set; } }
-
     public class NotionAssessmentPage { [JsonProperty("properties")] public NotionAssessmentProperties Properties { get; set; } }
     public class NotionAssessmentProperties { [JsonProperty("수행평가명")] public NotionTitleProperty AssessmentName { get; set; } [JsonProperty("날짜")] public NotionDateProperty DueDate { get; set; } }
 
+
+    public class NotionWordPage { [JsonProperty("properties")] public NotionWordProperties Properties { get; set; } }
+    public class NotionWordProperties { [JsonProperty("영단어")] public NotionTitleProperty Word { get; set; } }
     #endregion
 
     public partial class MainWindow : Window
@@ -106,6 +108,7 @@ namespace DesktopWidgetApp
         private const string NotionApiKey = "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"; // Notion API 키 (고정형 - 오늘의 메시지, 오늘의 영단어, 디데이 등의 고정형 기능의 API키를 담당)
         private const string MotdDatabaseId = "20af2d42beb9804e9e52c5f6b72a67a3"; // MOTD 데이터베이스 ID (오늘의 메시지 데이터베이스를 찾는 담당)
         private const string DdayDatabaseId = "20df2d42beb980c09a58fc147a4eb6ba"; // D-Day 데이터베이스 ID (D-Day 기능을 담당)
+        private const string WordDatabaseId = "211f2d42beb94ea180598e07d8e316bf";
 
         private static readonly Random random = new Random(); //랜덤 숫자 생성기 (오늘의 메시지 기능에서 랜덤 번호를 선택하는 데 사용됨)
         #endregion
@@ -351,16 +354,82 @@ namespace DesktopWidgetApp
 
 
         #region Data Loading & UI Update
-        private async Task LoadDailyWordAsync() 
+
+private async Task LoadDailyWordAsync()
         {
-            await Dispatcher.InvokeAsync(() => 
+            Debug.WriteLine("LoadDailyWordAsync 시작");
+            List<TextBlock> wordTextBlocks = new List<TextBlock> { Word1, Word2, Word3, Word4, Word5, Word6 };
+
+            // UI 초기화
+            await Dispatcher.InvokeAsync(() => {
+                foreach (var tb in wordTextBlocks) { if (tb != null) tb.Text = "..."; }
+            });
+
+            if (string.IsNullOrWhiteSpace(NotionApiKey) || string.IsNullOrWhiteSpace(WordDatabaseId))
             {
-                if (DailyWordContent != null) 
-                    DailyWordContent.Text = "[주의 - 아직 개발중인 빌드입니다]"; 
+                await Dispatcher.InvokeAsync(() => { foreach (var tb in wordTextBlocks) { if (tb != null) tb.Text = "[API 정보 미설정]"; } });
+                return;
             }
-            )
-                ; 
+
+            List<string> allWords = new List<string>();
+            using (HttpClient client = new HttpClient())
+            {
+                try
+                {
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", NotionApiKey);
+                    client.DefaultRequestHeaders.Add("Notion-Version", "2022-06-28");
+                    HttpResponseMessage response = await client.PostAsync($"https://api.notion.com/v1/databases/{WordDatabaseId}/query", new StringContent("{}", Encoding.UTF8, "application/json"));
+                    string jsonResponse = await response.Content.ReadAsStringAsync();
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var apiResponse = JsonConvert.DeserializeObject<NotionApiResponse<NotionWordPage>>(jsonResponse);
+                        if (apiResponse?.Results != null && apiResponse.Results.Any())
+                        {
+                            allWords = apiResponse.Results
+                                .Select(r => r.Properties?.Word?.Title?.FirstOrDefault()?.Text?.Content)
+                                .Where(w => !string.IsNullOrWhiteSpace(w))
+                                .ToList();
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"영단어 Notion API 예외: {ex.Message}");
+                    await Dispatcher.InvokeAsync(() => { foreach (var tb in wordTextBlocks) { if (tb != null) tb.Text = "[로드 실패]"; } });
+                    return;
+                }
+            }
+
+            // 단어 섞기 및 6개 선택
+            if (allWords.Any())
+            {
+                // Fisher-Yates 알고리즘으로 리스트 섞기
+                for (int i = allWords.Count - 1; i > 0; i--)
+                {
+                    int j = random.Next(i + 1);
+                    (allWords[i], allWords[j]) = (allWords[j], allWords[i]);
+                }
+                var selectedWords = allWords.Take(6).ToList();
+
+                // UI 업데이트
+                await Dispatcher.InvokeAsync(() => {
+                    for (int i = 0; i < wordTextBlocks.Count; i++)
+                    {
+                        if (wordTextBlocks[i] != null)
+                        {
+                            wordTextBlocks[i].Text = i < selectedWords.Count ? selectedWords[i] : "";
+                        }
+                    }
+                });
+            }
+            else
+            {
+                await Dispatcher.InvokeAsync(() => { foreach (var tb in wordTextBlocks) { if (tb != null) tb.Text = "[단어 없음]"; } });
+            }
+            Debug.WriteLine("LoadDailyWordAsync 완료");
         }
+      
         private async Task LoadPerformanceAssessmentDataAsync() // 수행평가 로드
         {
             Debug.WriteLine("LoadPerformanceAssessmentDataAsync 시작");
