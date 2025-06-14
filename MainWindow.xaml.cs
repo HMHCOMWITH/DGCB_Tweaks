@@ -445,7 +445,7 @@ private async Task LoadDailyWordAsync()
 
             if (string.IsNullOrWhiteSpace(userApiKey) || string.IsNullOrWhiteSpace(userDbId))
             {
-                await Dispatcher.InvokeAsync(() => ClearPerformanceGrid("Notion API 정보 미설정"));
+                await Dispatcher.InvokeAsync(() => ClearPerformanceGrid("Notion API 정보 미설정. '이용 방법 및 문의'를 참조해주세요."));
                 return;
             }
 
@@ -479,7 +479,7 @@ private async Task LoadDailyWordAsync()
                     }
                     else
                     {
-                        await Dispatcher.InvokeAsync(() => ClearPerformanceGrid("Notion API 정보가 올바르지 않습니다. 데이터베이스 아이디와 API 키, API 키의 접근 권한을 확인해주세요."));
+                        await Dispatcher.InvokeAsync(() => ClearPerformanceGrid("Notion API 정보가 올바르지 않습니다. 데이터베이스 아이디와 API 키, API 키의 접근 권한, 데이터베이스의 '수행평가명' 탭 이름이 제대로 기재되어있는지 확인해주세요."));
                         return;
                     }
                 }
