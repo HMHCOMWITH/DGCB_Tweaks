@@ -270,7 +270,9 @@ namespace DesktopWidgetApp
                 MainBorder.Background = new SolidColorBrush(Color.FromArgb(alpha, 0, 0, 0)); 
             }
             // 설정 저장 후 수행평가 정보도 다시 로드
-            _ = LoadPerformanceAssessmentDataAsync();
+            _ = LoadPerformanceAssessmentDataAsync(); // 수행평가 데이터 비동기로 로드
+            _ = LoadTimetableDataAsync(); // 시간표 데이터 비동기로 로드
+            _ = LoadSchoolMealsAsync(); // 급식 데이터 비동기로 로드 
         }
 
         private void UpdateTimetableTitle(string grade, string classNum) // 시간표 제목 업데이트 메서드 
