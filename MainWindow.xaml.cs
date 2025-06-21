@@ -124,6 +124,8 @@ namespace DesktopWidgetApp
         private IntPtr _hWnd; // 현재 윈도우의 핸들 (윈도우를 식별하는 고유한 값 - P/Invoke에서 사용됨)
         #endregion
 
+
+
         #region Constructor and Window Events
         public MainWindow() // 생성자 - 앱 데이터 경로와 파일 경로 설정, UI 초기화
         {
@@ -360,10 +362,10 @@ namespace DesktopWidgetApp
 private async Task LoadDailyWordAsync()
         {
             Debug.WriteLine("LoadDailyWordAsync 시작");
-            List<TextBlock> wordTextBlocks = new List<TextBlock> { Word1, Word2, Word3, Word4, Word5, Word6 };
-
+            List<TextBlock> wordTextBlocks = new List<TextBlock> { Word1, Word2, Word3, Word4, Word5, Word6 }; // 영단어를 표시할 TextBlock 리스트 생성 - 여기에 단어 넣을예정
             // UI 초기화
-            await Dispatcher.InvokeAsync(() => {
+            await Dispatcher.InvokeAsync(() =>
+            { // UI 스레드에서 실행되도록 Dispatcher를 사용하여 UI 요소를 초기화 - 람다식 사용
                 foreach (var tb in wordTextBlocks) { if (tb != null) tb.Text = "..."; }
             });
 
@@ -374,11 +376,11 @@ private async Task LoadDailyWordAsync()
             }
 
             List<string> allWords = new List<string>();
-            using (HttpClient client = new HttpClient())
+            using (HttpClient client = new HttpClient()) // HttpClient를 사용하여 Notion API에 요청을 보냄
             {
                 try
                 {
-                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", NotionApiKey);
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", NotionApiKey); // Notion API 키를 Authorization 헤더에 추가
                     client.DefaultRequestHeaders.Add("Notion-Version", "2022-06-28");
                     HttpResponseMessage response = await client.PostAsync($"https://api.notion.com/v1/databases/{WordDatabaseId}/query", new StringContent("{}", Encoding.UTF8, "application/json"));
                     string jsonResponse = await response.Content.ReadAsStringAsync();
@@ -869,6 +871,17 @@ private async Task LoadDailyWordAsync()
         private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e) { if (e.ButtonState == MouseButtonState.Pressed) { this.DragMove(); } }
         private void CloseButton_Click(object sender, RoutedEventArgs e) { Application.Current.Shutdown(); }
         private void SettingsButton_Click(object sender, RoutedEventArgs e) { SettingsWindow settingsWindow = new SettingsWindow(TryLoadAppSettings(), OnSettingsSaved); settingsWindow.Owner = this; settingsWindow.ShowDialog(); }
+        private void Timetable_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            // 이 메서드는 ScrollViewer가 마우스 클릭을 처리하기 '전에' 실행됩니다.
+            // 여기서 마우스 상태를 확인하고 창 이동 명령을 직접 호출하여
+            // 이벤트가 ScrollViewer에 의해 중단되는 것을 막습니다.
+            if (e.ButtonState == MouseButtonState.Pressed)
+            {
+                this.DragMove();
+            }
+        }
+
         #endregion
     }
 }

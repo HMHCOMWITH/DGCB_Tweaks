@@ -85,7 +85,7 @@
             <!-- 오른쪽 섹션 (영단어, 급식, 시간표) -->
                         <StackPanel Grid.Column="1" Margin="10,35,0,0">
                 <!-- 오늘의 영단어 (UI 수정) -->
-                <Border Background="#33FFFFFF" CornerRadius="5" Padding="10" Margin="0,0,0,5">
+                <Border Background="#33FFFFFF" CornerRadius="5" Padding="10" Margin="0,2,0,5">
                     <StackPanel>
                         <TextBlock Text="📚 오늘의 영단어" FontSize="16" FontWeight="Bold" Foreground="White" Margin="0,0,0,5"/>
                         <!-- 2행 3열 그리드로 변경 -->
@@ -132,8 +132,9 @@
                 <Border Background="#33FFFFFF" CornerRadius="5" Padding="10" Margin="0,5,0,0">
                     <DockPanel>
                         <TextBlock x:Name="TimetableTitleText" DockPanel.Dock="Top" Text="📅 시간표" FontSize="16" FontWeight="Bold" Foreground="White" Margin="0,0,0,5"/>
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                            <Grid x:Name="TimetableDisplayGrid"/>
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" 
+              PreviewMouseLeftButtonDown="Timetable_PreviewMouseLeftButtonDown">
+                            <Grid x:Name="TimetableDisplayGrid" MinHeight="290"/>
                         </ScrollViewer>
                     </DockPanel>
                 </Border>
