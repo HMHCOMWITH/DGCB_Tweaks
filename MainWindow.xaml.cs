@@ -873,14 +873,29 @@ private async Task LoadDailyWordAsync()
         private void SettingsButton_Click(object sender, RoutedEventArgs e) { SettingsWindow settingsWindow = new SettingsWindow(TryLoadAppSettings(), OnSettingsSaved); settingsWindow.Owner = this; settingsWindow.ShowDialog(); }
         private void Timetable_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            // 이 메서드는 ScrollViewer가 마우스 클릭을 처리하기 '전에' 실행됩니다.
-            // 여기서 마우스 상태를 확인하고 창 이동 명령을 직접 호출하여
-            // 이벤트가 ScrollViewer에 의해 중단되는 것을 막습니다.
+            // 클릭된 지점의 원본 소스를 가져옵니다.
+            var source = e.OriginalSource as DependencyObject;
+
+            // 클릭된 지점부터 시작해서 부모 요소를 따라 올라가며 스크롤바(ScrollBar)가 있는지 확인합니다.
+            while (source != null && !(source is System.Windows.Controls.Primitives.ScrollBar))
+            {
+                source = VisualTreeHelper.GetParent(source);
+            }
+
+            // 만약 부모 요소 중에 스크롤바가 있다면(즉, 스크롤바를 클릭했다면),
+            // 창 이동을 실행하지 않고 메서드를 종료합니다.
+            if (source is System.Windows.Controls.Primitives.ScrollBar)
+            {
+                return;
+            }
+
+            // 스크롤바가 아닌 다른 곳을 클릭했을 때만 창 이동을 실행합니다.
             if (e.ButtonState == MouseButtonState.Pressed)
             {
                 this.DragMove();
             }
         }
+
 
         #endregion
     }
