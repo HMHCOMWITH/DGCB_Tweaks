@@ -18,6 +18,8 @@ using System.Diagnostics;
 using Microsoft.Win32;
 using System.Runtime.InteropServices;
 
+/// 베타테스트빌드 - 2025.07.11
+
 // 이 파일은 DesktopWidgetApp 프로젝트의 일부로, WPF 기반의 데스크탑 위젯 애플리케이션을 구현하는 코드입니다.
 // MainWindow.xaml 파일과 연결되어 있으며, 애플리케이션의 주요 기능을 담당합니다.
 
@@ -106,9 +108,9 @@ namespace DesktopWidgetApp
         private const string MealServiceCode_Fixed = "2"; // 급식 서비스 코드 (2는 중식)
 
         private const string NotionApiKey = "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"; // Notion API 키 (고정형 - 오늘의 메시지, 오늘의 영단어, 디데이 등의 고정형 기능의 API키를 담당)
-        private const string MotdDatabaseId = "20af2d42beb9804e9e52c5f6b72a67a3"; // MOTD 데이터베이스 ID (오늘의 메시지 데이터베이스를 찾는 담당)
+        private const string MotdDatabaseId = "22cf2d42beb9802bb872deee72b84d63"; // MOTD 데이터베이스 ID (오늘의 메시지 데이터베이스를 찾는 담당)
         private const string DdayDatabaseId = "20df2d42beb980c09a58fc147a4eb6ba"; // D-Day 데이터베이스 ID (D-Day 기능을 담당)
-        private const string WordDatabaseId = "211f2d42beb980598e07d8e316bf7a44";
+        private const string WordDatabaseId = "22cf2d42beb980c1a570fed13ddadb3b";
 
         private static readonly Random random = new Random(); //랜덤 숫자 생성기 (오늘의 메시지 기능에서 랜덤 번호를 선택하는 데 사용됨)
         #endregion

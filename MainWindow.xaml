@@ -46,7 +46,7 @@
                         ToolTip="설정"/>
 
                 <StackPanel Margin="0,0,10,0">
-                    <TextBlock Text="DGCBTweaks" FontSize="20" FontWeight="Bold" Foreground="#CCCCCC"
+                    <TextBlock Text="DGCBTweaks - BETATEST" FontSize="20" FontWeight="Bold" Foreground="#CCCCCC"
                                HorizontalAlignment="Left" VerticalAlignment="Top" Margin="5,5,0,5"/>
 
                     <!-- D-Day 알림표 (UI 수정) -->
