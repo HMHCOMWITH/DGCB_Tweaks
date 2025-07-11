@@ -111,6 +111,10 @@ namespace DesktopWidgetApp
         private const string MotdDatabaseId = "22cf2d42beb9802bb872deee72b84d63"; // MOTD 데이터베이스 ID (오늘의 메시지 데이터베이스를 찾는 담당)
         private const string DdayDatabaseId = "20df2d42beb980c09a58fc147a4eb6ba"; // D-Day 데이터베이스 ID (D-Day 기능을 담당)
         private const string WordDatabaseId = "22cf2d42beb980c1a570fed13ddadb3b";
+        /// <summary>
+        /// jjkfdjklasjkfdasjkdjkdfjkfjfk;jkffjk;jkf;sdjkjk;sjfkdl;jklssadjkdasfjkdjflldjkssjadjakdljflajkljlfaj;fdsjljdsfjfdasjl;sdjkladjasdjadsfjkdl;fjkl;ajdsjfkladjkdjkl;
+        /// 여기 바꿔라 브랜치 작업끝나면
+        /// </summary>
 
         private static readonly Random random = new Random(); //랜덤 숫자 생성기 (오늘의 메시지 기능에서 랜덤 번호를 선택하는 데 사용됨)
         #endregion
