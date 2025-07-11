@@ -876,7 +876,20 @@ private async Task LoadDailyWordAsync()
         #region UI Event Handlers
         private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e) { if (e.ButtonState == MouseButtonState.Pressed) { this.DragMove(); } }
         private void CloseButton_Click(object sender, RoutedEventArgs e) { Application.Current.Shutdown(); }
-        private void SettingsButton_Click(object sender, RoutedEventArgs e) { SettingsWindow settingsWindow = new SettingsWindow(TryLoadAppSettings(), OnSettingsSaved); settingsWindow.Owner = this; settingsWindow.ShowDialog(); }
+         // private void SettingsButton_Click(object sender, RoutedEventArgs e) { SettingsWindow settingsWindow = new SettingsWindow(TryLoadAppSettings(), OnSettingsSaved); settingsWindow.Owner = this; settingsWindow.ShowDialog(); }
+        private void SettingsButton_Click(object sender, RoutedEventArgs e)
+        {
+            Debug.WriteLine("설정 버튼 클릭됨");
+            AppSettings currentSettings = TryLoadAppSettings();
+            // 설정 창을 띄울 때, '저장' 콜백과 '새로고침' 콜백을 모두 전달합니다.
+            SettingsWindow settingsWindow = new SettingsWindow(
+                currentSettings,
+                OnSettingsSaved,
+                async () => await LoadInitialDataAsync() // 새로고침 버튼이 눌리면 LoadInitialDataAsync 실행
+            );
+            settingsWindow.Owner = this;
+            settingsWindow.ShowDialog();
+        }
         private void Timetable_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             // 이 메서드는 ScrollViewer가 마우스 클릭을 처리하기 '전에' 실행됩니다.

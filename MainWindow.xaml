@@ -61,7 +61,7 @@
                     <Border Background="#33FFFFFF" CornerRadius="5" Padding="10" Margin="0,0,0,5">
                         <StackPanel>
                             <TextBlock Text="📝 수행평가 공지" FontSize="16" FontWeight="Bold" Foreground="White" Margin="0,0,0,5"/>
-                            <Grid x:Name="PerformanceAssessmentGrid" MinHeight="150"/>
+                            <Grid x:Name="PerformanceAssessmentGrid" MinHeight="150"  />
                         </StackPanel>
                     </Border>
                     <!-- 오늘의 메시지 (MOTD) -->
@@ -120,11 +120,11 @@
                             </Grid.ColumnDefinitions>
                             <StackPanel Grid.Column="0" Margin="0,0,5,0">
                                 <TextBlock Text="[오늘]" FontWeight="SemiBold" Foreground="#DDDDDD" Margin="0,0,0,2"/>
-                                <TextBlock x:Name="TodayMealContentText" Text="[로딩 중...]" Foreground="White" TextWrapping="Wrap" VerticalAlignment="Top"/>
+                                <TextBlock x:Name="TodayMealContentText" Text="[로딩 중...]" FontSize="16" Foreground="White" TextWrapping="Wrap" VerticalAlignment="Top"/>
                             </StackPanel>
                             <StackPanel Grid.Column="1" Margin="5,0,0,0">
                                 <TextBlock Text="[내일]" FontWeight="SemiBold" Foreground="#DDDDDD" Margin="0,0,0,2"/>
-                                <TextBlock x:Name="TomorrowMealContentText" Text="[로딩 중...]" Foreground="White" TextWrapping="Wrap" VerticalAlignment="Top"/>
+                                <TextBlock x:Name="TomorrowMealContentText" Text="[로딩 중...]" FontSize="16" Foreground="White" TextWrapping="Wrap" VerticalAlignment="Top"/>
                             </StackPanel>
                         </Grid>
                     </StackPanel>
